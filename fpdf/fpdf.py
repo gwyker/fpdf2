@@ -39,6 +39,7 @@ from .actions import Action
 from .deprecation import WarnOnDeprecatedModuleAttributes
 from .enums import (
     Align,
+    Anchor,
     DocumentState,
     PageLayout,
     PageMode,
@@ -2226,6 +2227,7 @@ class FPDF(GraphicsStateMixin):
         border=0,
         ln="DEPRECATED",
         align=Align.L,
+        anchor=Anchor.C,
         fill=False,
         link="",
         center="DEPRECATED",
@@ -2257,9 +2259,12 @@ class FPDF(GraphicsStateMixin):
             new_x (fpdf.enums.XPos, str): New current position in x after the call. Default: RIGHT
             new_y (fpdf.enums.YPos, str): New current position in y after the call. Default: TOP
             ln (int): **DEPRECATED since 2.5.1**: Use `new_x` and `new_y` instead.
-            align (fpdf.enums.Align, str): Allows to center or align the text inside the cell.
+            align (fpdf.enums.Align, str): Allows to center or align the text horizontally inside the cell.
                 Possible values are: `L` or empty string: left align (default value) ;
                 `C`: center ; `R`: right align
+            anchor (fpdf.enums.Anchor, str): Allows to anchor the text vertically inside the cell.
+                Possible values are: `C` or empty string: center anchor (default value) ;
+                `T`: top anchor ; `B`: bottom anchor
             fill (bool): Indicates if the cell background must be painted (`True`)
                 or transparent (`False`). Default value: False.
             link (str): optional link to add on the cell, internal
@@ -2322,6 +2327,7 @@ class FPDF(GraphicsStateMixin):
             raise ValueError(
                 "cell() only produces one text line, justified alignment is not possible"
             )
+        anchor = Anchor.coerce(anchor)
         # Font styles preloading must be performed before any call to FPDF.get_string_width:
         txt = self.normalize_text(txt)
         styled_txt_frags = self._preload_font_styles(txt, markdown)
@@ -2338,6 +2344,7 @@ class FPDF(GraphicsStateMixin):
             new_x=new_x,
             new_y=new_y,
             align=align,
+            anchor=anchor,
             fill=fill,
             link=link,
             center=center,
@@ -2352,6 +2359,7 @@ class FPDF(GraphicsStateMixin):
         new_x: XPos = XPos.RIGHT,
         new_y: YPos = YPos.TOP,
         align: Align = Align.L,
+        anchor: Anchor = Anchor.C,
         fill: bool = False,
         link: str = "",
         center: bool = False,
@@ -2381,6 +2389,7 @@ class FPDF(GraphicsStateMixin):
             new_x (fpdf.enums.XPos): New current position in x after the call.
             new_y (fpdf.enums.YPos): New current position in y after the call.
             align (fpdf.enums.Align): Allows to align the text inside the cell.
+            anchor (fpdf.enums.Anchor): Allows to anchor the text vertically inside the cell.
             fill (bool): Indicates if the cell background must be painted (`True`)
                 or transparent (`False`). Default value: False.
             link (str): optional link to add on the cell, internal
@@ -2495,10 +2504,24 @@ class FPDF(GraphicsStateMixin):
             if self.fill_color != self.text_color:
                 sl.append(self.text_color.pdf_repr().lower())
 
-            sl.append(
-                f"BT {(self.x + dx) * k:.2f} "
-                f"{(self.h - self.y - 0.5 * h - 0.3 * self.font_size) * k:.2f} Td"
-            )
+            sl.append(f"BT {(self.x+dx)*k:.2f} ")
+            # Set text y position based on anchor
+            if anchor == Anchor.T:
+                sl.append(
+                    # f"{(self.h-self.y-.3*self.font_size)*k:.2f} Td"
+                    f"{(self.h-self.y-.9*self.font_size)*k:.2f} Td"
+                )
+            elif anchor == Anchor.B:
+                sl.append(
+                    f"{(self.h-self.y-h+.15*self.font_size)*k:.2f} Td"
+                    # f"{(self.h-self.y-h)*k:.2f} Td"
+                )
+            else:
+                sl.append(
+                    # f"{(self.h - self.y - 0.5 * h - 0.3 * self.font_size) * k:.2f} Td"
+                    f"{(self.h-self.y-.5*h-.3*self.font_size)*k:.2f} Td"
+                    # f"{(self.h-self.y-.5*h)*k:.2f} Td"
+                )
 
             if self.text_mode != TextMode.FILL:
                 sl.append(f"{self.text_mode} Tr {self.line_width:.2f} w")

@@ -119,6 +119,25 @@ class Align(CoerciveEnum):
         return super(cls, cls).coerce(value)
 
 
+class Anchor(CoerciveEnum):
+    "Defines how to render text in a cell"
+
+    C = intern("CENTER")
+    "Anchor to center"
+
+    T = intern("TOP")
+    "Anchor to top"
+
+    B = intern("BOTTOM")
+    "Anchor to bottom"
+
+    @classmethod
+    def coerce(cls, value):
+        if value == "":
+            return cls.C
+        return super(cls, cls).coerce(value)
+
+
 class RenderStyle(CoerciveEnum):
     "Defines how to render shapes"
 
