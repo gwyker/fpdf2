@@ -2508,19 +2508,15 @@ class FPDF(GraphicsStateMixin):
             # Set text y position based on anchor
             if anchor == Anchor.T:
                 sl.append(
-                    # f"{(self.h-self.y-.3*self.font_size)*k:.2f} Td"
                     f"{(self.h-self.y-.9*self.font_size)*k:.2f} Td"
                 )
             elif anchor == Anchor.B:
                 sl.append(
                     f"{(self.h-self.y-h+.15*self.font_size)*k:.2f} Td"
-                    # f"{(self.h-self.y-h)*k:.2f} Td"
                 )
             else:
                 sl.append(
-                    # f"{(self.h - self.y - 0.5 * h - 0.3 * self.font_size) * k:.2f} Td"
                     f"{(self.h-self.y-.5*h-.3*self.font_size)*k:.2f} Td"
-                    # f"{(self.h-self.y-.5*h)*k:.2f} Td"
                 )
 
             if self.text_mode != TextMode.FILL:
